@@ -1,27 +1,35 @@
-
+# .github/workflows/build.yml
 name: Build EXE
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:   # ✱ “Run workflow” 버튼을 직접 눌러 실행
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: windows-latest          # 마이크로소프트가 제공하는 Win 서버
     steps:
       - uses: actions/checkout@v4
+
+      # ① 파이썬 설치
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
+
+      # ② 의존 설치: pyinstaller + hooks-contrib + 스크립트 라이브러리
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pyinstaller plotly tkinterdnd2 numpy
+          pip install pyinstaller pyinstaller-hooks-contrib plotly tkinterdnd2 numpy
+
+      # ③ EXE 빌드 (--collect-all 로 plotly JSON·아이콘까지 수집)
       - name: Build exe
         run: |
-          pyinstaller 3D_compare_code.spec
+          pyinstaller --onefile --collect-all plotly 3D_compare_code.py
+
+      # ④ 산출물 업로드 (Artifacts)
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: 3D_compare_tool
-          path: dist/3D_compare_tool/**
+          path: dist/3D_compare_code.exe        # --onefile 이므로 단일 파일
